@@ -1,69 +1,69 @@
-name: SA-REDBACK CI/CD Deployment
+# name: SA-REDBACK CI/CD Deployment
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  deploy:
-    name: Deploy to Remote Server
-    runs-on: ubuntu-latest
+# jobs:
+#   deploy:
+#     name: Deploy to Remote Server
+#     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [20.x]
+#     strategy:
+#       matrix:
+#         node-version: [20.x]
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
 
-      - name: Setup SSH Agent
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+#       - name: Setup SSH Agent
+#         uses: webfactory/ssh-agent@v0.5.3
+#         with:
+#           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
-      - name: Execute Remote Commands via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: root  # Using root for SSH connection
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
-          script: |
-            # Define project directory
-            PROJECT_DIR="/www/wwwroot/SA-REDBACK"
+#       - name: Execute Remote Commands via SSH
+#         uses: appleboy/ssh-action@master
+#         with:
+#           host: ${{ secrets.REMOTE_HOST }}
+#           username: root  # Using root for SSH connection
+#           key: ${{ secrets.SERVER_SSH_KEY }}
+#           port: 22
+#           script: |
+#             # Define project directory
+#             PROJECT_DIR="/www/wwwroot/SA-REDBACK"
 
-            # Use HTTPS instead of SSH to clone and update code
-            GIT_REPO="https://github.com/feit-comp90082/SA-RedBack.git"
-            GIT_USERNAME="${{ secrets.MY_USERNAME }}"
-            GIT_TOKEN="${{ secrets.MY_TOKEN }}"
+#             # Use HTTPS instead of SSH to clone and update code
+#             GIT_REPO="https://github.com/feit-comp90082/SA-RedBack.git"
+#             GIT_USERNAME="${{ secrets.MY_USERNAME }}"
+#             GIT_TOKEN="${{ secrets.MY_TOKEN }}"
 
-            # Configure Git to use HTTPS to access GitHub
-            git config --global user.name "${GIT_USERNAME}"
-            git config --global user.password "${GIT_TOKEN}"
-            git config --global --add safe.directory /www/wwwroot/SA-REDBACK
+#             # Configure Git to use HTTPS to access GitHub
+#             git config --global user.name "${GIT_USERNAME}"
+#             git config --global user.password "${GIT_TOKEN}"
+#             git config --global --add safe.directory /www/wwwroot/SA-REDBACK
 
-            # Check if the project already exists
-            if [ -d "$PROJECT_DIR/.git" ]; then
-              echo "Project found. Pulling the latest changes..."
-              cd $PROJECT_DIR
-              git fetch origin main
-              git reset --hard  # Clean up any local changes
-            else
-              echo "Cloning the repository for the first time..."
-              git clone git@github.com:Yingying-Guo/ReactPractice.git $PROJECT_DIR
-              cd $PROJECT_DIR
-            fi
+#             # Check if the project already exists
+#             if [ -d "$PROJECT_DIR/.git" ]; then
+#               echo "Project found. Pulling the latest changes..."
+#               cd $PROJECT_DIR
+#               git fetch origin main
+#               git reset --hard  # Clean up any local changes
+#             else
+#               echo "Cloning the repository for the first time..."
+#               git clone git@github.com:Yingying-Guo/ReactPractice.git $PROJECT_DIR
+#               cd $PROJECT_DIR
+#             fi
 
-            # Install dependencies and build the project
-            cd src
-            rm -rf node_modules/
-            npm ci
-            npm run build
+#             # Install dependencies and build the project
+#             cd src
+#             rm -rf node_modules/
+#             npm ci
+#             npm run build
 
-            # Kill any processes occupying ports 3001 and 5173
-            (lsof -i :3001 -t; lsof -i :5173 -t) | xargs kill -9 || true
+#             # Kill any processes occupying ports 3001 and 5173
+#             (lsof -i :3001 -t; lsof -i :5173 -t) | xargs kill -9 || true
 
-            # Restart the ChatterBot service using the deployment script
-            sh /www/server/nodejs/vhost/scripts/SA-RedBack-AI-ChatterBox-HTTPS.sh
+#             # Restart the ChatterBot service using the deployment script
+#             sh /www/server/nodejs/vhost/scripts/SA-RedBack-AI-ChatterBox-HTTPS.sh
